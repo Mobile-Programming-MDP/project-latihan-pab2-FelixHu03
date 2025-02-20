@@ -1,0 +1,32 @@
+[
+    {
+      "nama": "Andi",
+      "umur": 30,
+      "alamat": {
+        "jalan": "Jl. Merdeka No. 10",
+        "kota": "Jakarta",
+        "provinsi": "DKI Jakarta"
+      },
+      "hobi": ["Membaca", "Sepakbola"]
+    },
+    {
+      "nama": "Budi",
+      "umur": 25,
+      "alamat": {
+        "jalan": "Jl. Pahlawan No. 5",
+        "kota": "Bandung",
+        "provinsi": "Jawa Barat"
+      },
+      "hobi": ["Bersepeda", "Menulis"]
+    },
+    {
+      "nama": "Citra",
+      "umur": 28,
+      "alamat": {
+        "jalan": "Jl. Merpati No. 3",
+        "kota": "Surabaya",
+        "provinsi": "Jawa Timur"
+      },
+      "hobi": ["Memasak", "Melukis"]
+    }
+]
