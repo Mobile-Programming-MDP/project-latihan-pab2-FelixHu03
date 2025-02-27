@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:pilem/Screens/detail_screen.dart';
 import 'package:pilem/models/movie.dart';
 import 'package:pilem/services/api_service.dart';
+import 'detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
-
   List<Movie> _allMovies = [];
   List<Movie> _trendingMovies = [];
   List<Movie> _popularMovies = [];
-
   @override
   void initState() {
     super.initState();
@@ -28,10 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await _apiService.getTrendingMovie();
     final List<Map<String, dynamic>> popularMoviesData =
         await _apiService.getPopularMovie();
-
     setState(() {
       _allMovies = allMoviesData.map((e) => Movie.fromJson(e)).toList();
-      _trendingMovies = trendingMoviesData.map((e) => Movie.fromJson(e)).toList();
+      _trendingMovies =
+          trendingMoviesData.map((e) => Movie.fromJson(e)).toList();
       _popularMovies = popularMoviesData.map((e) => Movie.fromJson(e)).toList();
     });
   }
@@ -60,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8.0),
           child: Text(
             title,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -72,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
             scrollDirection: Axis.horizontal,
             itemCount: movies.length,
             itemBuilder: (BuildContext context, int index) {
-              final movie = movies[index]; // Ambil movie dari index
+              final Movie movie = movies[index];
               return GestureDetector(
                 onTap: () => Navigator.push(
                   context,
@@ -81,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
                       Image.network(
@@ -96,14 +95,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ? '${movie.title.substring(0, 10)}...'
                             : movie.title,
                         style: const TextStyle(fontWeight: FontWeight.bold),
-                      )
+                      ),
                     ],
                   ),
                 ),
               );
             },
           ),
-        )
+        ),
       ],
     );
   }

@@ -22,4 +22,10 @@ class ApiService {
     final data = json.decode(response.body);
     return List<Map<String, dynamic>>.from(data['results']);
   }
+  // untuk Mencari movie
+  Future<List<Map<String,dynamic>>> searchMovie (String query) async{
+    final response = await http.get(Uri.parse("$baseUrl/search/movie?query=$query&api_key=$apiKey"));
+    final data = json.decode(response.body);
+    return List<Map<String, dynamic>>.from(data['results']);
+  }
 }
