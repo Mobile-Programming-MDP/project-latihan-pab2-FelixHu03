@@ -63,10 +63,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
             TextField(
               controller: _passwordController,
               decoration: const InputDecoration(labelText: "Password"),
+               obscureText: true,
             ),
             TextField(
               controller: _confirmPasswordController,
               decoration: const InputDecoration(labelText: "Confirm Password"),
+               obscureText: true,
             ),
             Container(
               margin: const EdgeInsets.only(top: 16),
