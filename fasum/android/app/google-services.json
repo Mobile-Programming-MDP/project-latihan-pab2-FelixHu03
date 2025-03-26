@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "911015308233",
+    "project_id": "fel-apps",
+    "storage_bucket": "fel-apps.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:911015308233:android:35db9030570338c2c4d618",
+        "android_client_info": {
+          "package_name": "com.example.fasum"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjvxlp3OYRRg9ic4u-pshp0OK9ZgXFNPw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
