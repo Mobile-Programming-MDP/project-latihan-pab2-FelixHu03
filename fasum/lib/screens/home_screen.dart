@@ -1,7 +1,5 @@
 import 'package:fasum/screens/sign_in.dart';
-import 'package:fasum/screens/sign_up.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
