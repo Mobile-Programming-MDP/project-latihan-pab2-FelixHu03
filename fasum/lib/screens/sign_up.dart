@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fasum/screens/sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _fullNameController = TextEditingController();
 
   void _registerAccount() async{
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -24,10 +26,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return;
     }
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      final newUser = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
+      // simpan data pengguna ke fireStore
+
+      await FirebaseFirestore.instance
+      .collection('users')
+      .doc(newUser.user!.uid)
+      .set({
+        'fullName': _fullNameController.text.trim(),
+        'email': _emailController.text,
+        'createdAt': Timestamp.now()
+    });
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
@@ -56,6 +68,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            TextField(
+              controller: _fullNameController,
+              decoration: const InputDecoration(labelText: "FullName"),
+            ),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: "Email"),
