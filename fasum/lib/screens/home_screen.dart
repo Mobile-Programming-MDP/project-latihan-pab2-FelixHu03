@@ -5,7 +5,6 @@ import 'package:fasum/screens/add_post_screen.dart';
 import 'package:fasum/screens/detail_screen.dart';
 import 'package:fasum/screens/sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -17,21 +16,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-    if (diff.inSeconds < 60) {
-      return '${diff.inSeconds} secs ago';
-    } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} mins ago';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours} hrs ago';
-    } else {
-      return DateFormat('dd/MM/yyyy').format(dateTime);
-    }
-  }
-
   String? selectedCategory;
+  //ambil dari add_post_screen
   List<String> categories = [
     'Jalan Rusak',
     'Marka Pudar',
@@ -52,6 +38,28 @@ class _HomeScreenState extends State<HomeScreen> {
     'Lainnya',
   ];
 
+  String formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+    if (diff.inSeconds < 60) {
+      return '${diff.inSeconds} secs ago';
+    } else if (diff.inMinutes < 60) {
+      return '${diff.inMinutes} mins ago';
+    } else if (diff.inHours < 24) {
+      return '${diff.inHours} hrs ago';
+    } else {
+      return DateFormat('dd/MM/yyyy').format(dateTime);
+    }
+  }
+
+  Future<void> signOut(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const SignInScreen()));
+  }
+
+  //ambil dari https://pastebin.com/8BXgdv3M
   void _showCategoryFilter() async {
     final result = await showModalBottomSheet<String?>(
       context: context,
@@ -107,13 +115,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> signOut(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const SignInScreen()));
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -135,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          setState(() {}); //mencegah stuck
+          setState(() {});
         },
         child: StreamBuilder(
           stream: FirebaseFirestore.instance
@@ -143,20 +144,24 @@ class _HomeScreenState extends State<HomeScreen> {
               .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
-            if (!snapshot.hasData)
+            if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
+            }
 
             final posts = snapshot.data!.docs.where((doc) {
               final data = doc.data();
-              
-              final Category = data['category'] ?? 'Lainnya';
-              return selectedCategory == null || selectedCategory == Category;
-            }).toList(); // untuk mengambil data snapshot dari firestore tanpa filter
+              final category = data['category'] ?? 'Lainnya';
+              return selectedCategory == null || selectedCategory == category;
+            }).toList();
+
             if (posts.isEmpty) {
               return const Center(
-                child: Text('Tidak ada laporan untuk kategori ini'),
+                child: Text("Tidak ada laporan untuk kategori ini!"),
               );
             }
+
+            //Script lengkap bagian ListView.builder
+            //https://pastebin.com/kSXM5mTX
             return ListView.builder(
               itemCount: posts.length,
               itemBuilder: (context, index) {
@@ -165,24 +170,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 final description = data['description'];
                 final createdAtStr = data['createdAt'];
                 final fullName = data['fullName'] ?? 'Anonim';
+                final latitude = data['latitude'];
+                final longitude = data['longitude'];
+                final category = data['category'] ?? 'Lainnya';
+                final currentUser = FirebaseAuth.instance.currentUser;
+                final userId = data['userId'] ?? "";
                 //parse ke DateTime
                 final createdAt = DateTime.parse(createdAtStr);
                 String heroTag =
-                    'fasum-image.${createdAt.millisecondsSinceEpoch}';
+                    'fasum-image-${createdAt.millisecondsSinceEpoch}';
                 return InkWell(
                   onTap: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => DetailScreen(
-                                imageBase64: imageBase64,
-                                description: description,
-                                createdAt: createdAt,
-                                fullName: fullName,
-                                latitude: 0.0,
-                                longitude: 0.0,
-                                category: 'Jalan Rusak',
-                                heroTag: heroTag)));
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailScreen(
+                            imageBase64: imageBase64,
+                            description: description,
+                            createdAt: createdAt,
+                            fullName: fullName,
+                            latitude: latitude,
+                            longitude: longitude,
+                            category: category,
+                            heroTag: heroTag),
+                      ),
+                    );
                   },
                   child: Card(
                     margin: const EdgeInsets.all(10),
@@ -207,22 +219,135 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(
+                              Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    formatTime(createdAt),
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.grey),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        formatTime(createdAt),
+                                        style: const TextStyle(
+                                            fontSize: 12, color: Colors.grey),
+                                      ),
+                                      Text(
+                                        fullName,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                    ],
                                   ),
-                                  Text(
-                                    fullName,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      IconButton(
+                                          onPressed: () {},
+                                          icon: Icon(Icons.thumb_up)),
+                                      IconButton(
+                                          onPressed: () {},
+                                          icon: Icon(Icons.comment)),
+                                      if (currentUser != null &&
+                                          currentUser.uid == userId)
+                                        IconButton(
+                                          onPressed: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.vertical(
+                                                  top: Radius.circular(24),
+                                                ),
+                                              ),
+                                              builder: (context) {
+                                                return SafeArea(
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      ListTile(
+                                                        leading: const Icon(
+                                                            Icons.edit),
+                                                        title:
+                                                            const Text('Edit'),
+                                                        onTap: () {
+                                                          Navigator.pop(
+                                                              context); //close the modal
+                                                          // Navigate to edit screen or implement edit functionality
+                                                        },
+                                                      ),
+                                                      ListTile(
+                                                        leading: const Icon(
+                                                            Icons.delete),
+                                                        title: const Text(
+                                                            'Delete'),
+                                                        onTap: () async {
+                                                          Navigator.pop(
+                                                              context);
+                                                          final confirmDelete =
+                                                              await showDialog<
+                                                                  bool>(
+                                                            context: context,
+                                                            builder: (context) {
+                                                              return AlertDialog(
+                                                                title: const Text(
+                                                                    'Konfirmasi'),
+                                                                content: const Text(
+                                                                    'Apakah Anda yakin ingin menghapus laporan ini?'),
+                                                                actions: [
+                                                                  TextButton(
+                                                                    onPressed: () =>
+                                                                        Navigator.pop(
+                                                                            context,
+                                                                            false),
+                                                                    child: const Text(
+                                                                        'Tidak'),
+                                                                  ),
+                                                                  TextButton(
+                                                                    onPressed: () =>
+                                                                        Navigator.pop(
+                                                                            context,
+                                                                            true),
+                                                                    child:
+                                                                        const Text(
+                                                                            'Ya'),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+
+                                                          if (confirmDelete ==
+                                                                  true &&
+                                                              mounted) {
+                                                            // Implement delete functionality
+                                                            FirebaseFirestore
+                                                                .instance
+                                                                .collection(
+                                                                    "posts")
+                                                                .doc(
+                                                                    posts[index]
+                                                                        .id)
+                                                                .delete();
+                                                          }
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                            );
+                                          },
+                                          icon: const Icon(Icons.more_vert),
+                                        )
+                                    ],
+                                  )
                                 ],
                               ),
                               const SizedBox(height: 6),
@@ -244,8 +369,9 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => AddPostScreen()));
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => AddPostScreen()),
+          );
         },
         child: const Icon(Icons.add),
       ),
