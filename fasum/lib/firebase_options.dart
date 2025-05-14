@@ -73,5 +73,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'fel-apps.firebasestorage.app',
     measurementId: 'G-4EZ06GPHJM',
   );
-
 }
