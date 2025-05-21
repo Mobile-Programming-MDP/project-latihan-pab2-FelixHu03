@@ -8,13 +8,14 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:shimmer/shimmer.dart';
- 
+import 'package:http/http.dart' as http;
+
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({Key? key}) : super(key: key);
   @override
   State<AddPostScreen> createState() => _AddPostScreenState();
 }
- 
+
 class _AddPostScreenState extends State<AddPostScreen> {
   File? _image;
   String? _base64Image;
@@ -70,13 +71,13 @@ class _AddPostScreenState extends State<AddPostScreen> {
       },
     );
   }
- 
+
   @override
   void dispose() {
     _descriptionController.dispose();
     super.dispose();
   }
- 
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await _picker.pickImage(source: source);
@@ -98,7 +99,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       }
     }
   }
- 
+
   Future<void> _compressAndEncodeImage() async {
     if (_image == null) return;
     try {
@@ -118,7 +119,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       }
     }
   }
- 
+
   Future<void> _generateDescriptionWithAI() async {
     if (_image == null) return;
     setState(() => _isGenerating = true);
@@ -126,7 +127,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
       //RequestOptions ro = const RequestOptions(apiVersion: 'v1');
       final model = GenerativeModel(
         model: 'gemini-1.5-flash',
-        apiKey: 'AIzaSyA6TOe2iy0p46UxUGEWADosmJbqG6WvIP4', //gunakan api key gemini anda
+        apiKey: 'AIzaSyDxMLBvU8zf1Ze9jAxTKx_RXzJjei08kq4',
+        //gunakan api key gemini anda
         //requestOptions: ro,
       );
       final imageBytes = await _image!.readAsBytes();
@@ -177,7 +179,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       if (mounted) setState(() => _isGenerating = false);
     }
   }
- 
+
   Future<void> _getLocation() async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -218,7 +220,40 @@ class _AddPostScreenState extends State<AddPostScreen> {
       });
     }
   }
- 
+
+  Future<void> sendNotificationToTopic(String body, String senderName) async {
+    final url = Uri.parse(
+        'https://lix-cloud.vercel.app/send-to-topic');
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        "topic": "berita-fasum",
+        "title": "🔔 Laporan Baru",
+        "body": body,
+        "senderName": senderName,
+        "senderPhotoUrl":
+            "https://t3.ftcdn.net/jpg/03/53/83/92/360_F_353839266_8yqhN0548cGxrl4VOxngsiJzDgrDHxjG.jpg",
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('✅ Notifikasi berhasil dikirim')),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ Gagal kirim notifikasi: ${response.body}')),
+        );
+      }
+    }
+  }
+
   Future<void> _submitPost() async {
     if (_base64Image == null || _descriptionController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -252,6 +287,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
         'userId': uid,
       });
       if (!mounted) return;
+
+      sendNotificationToTopic(_descriptionController.text, fullName);
+
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Post uploaded successfully!')),
@@ -269,7 +307,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       }
     }
   }
- 
+
   void _showImageSourceDialog() {
     showModalBottomSheet(
       context: context,
@@ -304,7 +342,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       },
     );
   }
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
