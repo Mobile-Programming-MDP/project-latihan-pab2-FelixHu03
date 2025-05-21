@@ -49,6 +49,9 @@ dependencies:
   geolocator_android: ^5.0.1+1
   google_generative_ai: ^0.4.7
   shimmer: ^3.0.0
+  firebase_messaging: ^15.2.6
+  flutter_local_notifications: ^19.2.1
+  http: ^1.4.0
 
 dev_dependencies:
   flutter_test:
